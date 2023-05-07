@@ -4,6 +4,7 @@
  *    Authored by Karl "p0lyh3dron" Kreuze on May 5th, 2023.
  */
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "spvlib.h"
 

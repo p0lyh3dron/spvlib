@@ -11,7 +11,14 @@
 #define _SPVLIB_H
 
 typedef struct {
+    char         *name;
+    unsigned int  id;
+    
+} _op_var_t;
 
+typedef struct {
+    _op_var_t     *vars;
+    unsigned long  var_count;
 } spv_t;
 
 /*
