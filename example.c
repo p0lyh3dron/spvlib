@@ -27,6 +27,30 @@ int main() {
 
     spv_t *spv = spv_parse(data);
 
+    spv_dump(spv);
+
+    spv_free(spv);
+
+    file = fopen("example2.spv", "rb");
+
+    fseek(file, 0, SEEK_END);
+
+    size = ftell(file);
+
+    fseek(file, 0, SEEK_SET);
+
+    data = (char *)malloc(size);
+
+    fread(data, 1, size, file);
+
+    fclose(file);
+
+    spv = spv_parse(data);
+
+    printf("\n\n\n");
+    
+    spv_dump(spv);
+
     spv_free(spv);
 
     free(data);
