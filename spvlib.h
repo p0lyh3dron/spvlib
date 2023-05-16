@@ -22,6 +22,23 @@ typedef struct {
 
 typedef struct {
     unsigned int id;
+    unsigned int samp_id;
+    unsigned int dim;
+    unsigned int depth;
+    unsigned int arrayed;
+    unsigned int ms;
+    unsigned int sampled;
+    unsigned int img_format;
+    unsigned int aq;
+} _op_image_t;
+
+typedef struct {
+    unsigned int id;
+    unsigned int type;
+} _op_sampled_image_t;
+
+typedef struct {
+    unsigned int id;
     unsigned int type_id;
 } _op_ptr_t;
 
@@ -51,16 +68,20 @@ typedef struct {
 } _op_var_t;
 
 typedef struct {
-    _op_float_t   *floats;
-    unsigned long  float_count;
-    _op_vec_t     *vecs;
-    unsigned long  vec_count;
-    _op_ptr_t     *ptrs;
-    unsigned long  ptr_count;
-    _op_name_t    *names;
-    unsigned long  name_count;
-    _op_var_t     *vars;
-    unsigned long  var_count;
+    _op_float_t         *floats;
+    unsigned long        float_count;
+    _op_vec_t           *vecs;
+    unsigned long        vec_count;
+    _op_image_t         *images;
+    unsigned long        image_count;
+    _op_sampled_image_t *sampled_images;
+    unsigned long        sampled_image_count;
+    _op_ptr_t           *ptrs;
+    unsigned long        ptr_count;
+    _op_name_t          *names;
+    unsigned long        name_count;
+    _op_var_t           *vars;
+    unsigned long        var_count;
 } spv_t;
 
 /*

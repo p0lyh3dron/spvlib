@@ -9,15 +9,17 @@
  */
 #include "spvlib.h"
 
-#define _OP_NOP             0
-#define _OP_NAME            5
-#define _OP_MEMBER_NAME     6
-#define _OP_TYPE_FLOAT      22
-#define _OP_TYPE_VECTOR     23
-#define _OP_TYPE_POINTER    32
-#define _OP_VARIABLE        59
-#define _OP_DECORATE        71
-#define _OP_MEMBER_DECORATE 72
+#define _OP_NOP                0
+#define _OP_NAME               5
+#define _OP_MEMBER_NAME        6
+#define _OP_TYPE_FLOAT         22
+#define _OP_TYPE_VECTOR        23
+#define _OP_TYPE_IMAGE         25
+#define _OP_TYPE_SAMPLED_IMAGE 27
+#define _OP_TYPE_POINTER       32
+#define _OP_VARIABLE           59
+#define _OP_DECORATE           71
+#define _OP_MEMBER_DECORATE    72
 
 #define _DEC_BLOCK          2
 #define _DEC_BUILTIN        11
@@ -103,6 +105,76 @@ int spv_add_vec(spv_t *spv, int id, int float_id) {
     spv->vecs[spv->vec_count].float_id = float_id;
 
     spv->vec_count++;
+
+    return 0;
+}
+
+/*
+ *    Adds an image to the spv_t struct.
+ *
+ *    @param spv_t *spv        The spv_t struct to add the image to.
+ *    @param int id            The id of the image.
+ *    @param int samp_id       The id of the sampled image.
+ *    @param int dim           The dimension of the image.
+ *    @param int depth         The depth of the image.
+ *    @param int arrayed       Whether or not the image is arrayed.
+ *    @param int ms            Whether or not the image is multisampled.
+ *    @param int sampled       Whether or not the image is sampled.
+ *    @param int img_format    The format of the image.
+ *    @param int aq            The access qualifier of the image.
+ * 
+ *    @return int              0 on success, -1 on failure.
+ */
+int spv_add_image(spv_t *spv, int id, int samp_id, int dim, int depth, int arrayed, int ms, int sampled, int img_format, int aq) {
+    spv->images = (_op_image_t *)realloc(spv->images, sizeof(_op_image_t) * (spv->image_count + 1));
+
+    if (spv->images == (_op_image_t *)0x0) {
+        spv_current_error = "Failed to allocate memory for image.";
+        if (spv_error_callback != (void (*)(const char *))0x0)
+            spv_error_callback(spv_current_error);
+
+        return -1;
+    }
+
+    spv->images[spv->image_count].id         = id;
+    spv->images[spv->image_count].samp_id    = samp_id;
+    spv->images[spv->image_count].dim        = dim;
+    spv->images[spv->image_count].depth      = depth;
+    spv->images[spv->image_count].arrayed    = arrayed;
+    spv->images[spv->image_count].ms         = ms;
+    spv->images[spv->image_count].sampled    = sampled;
+    spv->images[spv->image_count].img_format = img_format;
+    spv->images[spv->image_count].aq         = aq;
+
+    spv->image_count++;
+
+    return 0;
+}
+
+/*
+ *    Adds a sampled image to the spv_t struct.
+ *
+ *    @param spv_t *spv    The spv_t struct to add the sampled image to.
+ *    @param int id        The id of the sampled image.
+ *    @param int type      The type of the sampled image.
+ * 
+ *    @return int          0 on success, -1 on failure.
+ */
+int spv_add_sampled_image(spv_t *spv, int id, int type) {
+    spv->sampled_images = (_op_sampled_image_t *)realloc(spv->sampled_images, sizeof(_op_sampled_image_t) * (spv->sampled_image_count + 1));
+
+    if (spv->sampled_images == (_op_sampled_image_t *)0x0) {
+        spv_current_error = "Failed to allocate memory for sampled image.";
+        if (spv_error_callback != (void (*)(const char *))0x0)
+            spv_error_callback(spv_current_error);
+
+        return -1;
+    }
+
+    spv->sampled_images[spv->sampled_image_count].id   = id;
+    spv->sampled_images[spv->sampled_image_count].type = type;
+
+    spv->sampled_image_count++;
 
     return 0;
 }
@@ -226,6 +298,38 @@ _op_vec_t *spv_get_vec(spv_t *spv, int id) {
 }
 
 /*
+ *    Returns an image from a given id.
+ *
+ *    @param spv_t *spv    The spv_t struct to get the image from.
+ *    @param int id        The id of the image to get.
+ * 
+ *    @return _op_image_t *  A pointer to the image.
+ */
+_op_image_t *spv_get_image(spv_t *spv, int id) {
+    for (unsigned long i = 0; i < spv->image_count; i++)
+        if (spv->images[i].id == id)
+            return &spv->images[i];
+
+    return (_op_image_t *)0x0;
+}
+
+/*
+ *    Returns a sampled image from a given id.
+ *
+ *    @param spv_t *spv    The spv_t struct to get the sampled image from.
+ *    @param int id        The id of the sampled image to get.
+ * 
+ *    @return _op_sampled_image_t *  A pointer to the sampled image.
+ */
+_op_sampled_image_t *spv_get_sampled_image(spv_t *spv, int id) {
+    for (unsigned long i = 0; i < spv->sampled_image_count; i++)
+        if (spv->sampled_images[i].id == id)
+            return &spv->sampled_images[i];
+
+    return (_op_sampled_image_t *)0x0;
+}
+
+/*
  *    Returns a pointer from a given id.
  *
  *    @param spv_t *spv    The spv_t struct to get the pointer from.
@@ -283,16 +387,20 @@ _op_var_t *spv_get_var(spv_t *spv, int id) {
 spv_t *spv_parse(const char *data) {
     spv_t *spv = (spv_t *)malloc(sizeof(spv_t));
 
-    spv->float_count = 0;
-    spv->floats      = (_op_float_t *)malloc(sizeof(_op_float_t) * 1);
-    spv->vec_count   = 0;
-    spv->vecs        = (_op_vec_t *)malloc(sizeof(_op_vec_t) * 1);
-    spv->ptr_count   = 0;
-    spv->ptrs        = (_op_ptr_t *)malloc(sizeof(_op_ptr_t) * 1);
-    spv->name_count  = 0;
-    spv->names       = (_op_name_t *)malloc(sizeof(_op_name_t) * 1);
-    spv->var_count   = 0;
-    spv->vars        = (_op_var_t *)malloc(sizeof(_op_var_t) * 1);
+    spv->float_count         = 0;
+    spv->floats              = (_op_float_t *)malloc(sizeof(_op_float_t) * 1);
+    spv->vec_count           = 0;
+    spv->vecs                = (_op_vec_t *)malloc(sizeof(_op_vec_t) * 1);
+    spv->image_count         = 0;
+    spv->images              = (_op_image_t *)malloc(sizeof(_op_image_t) * 1);
+    spv->sampled_image_count = 0;
+    spv->sampled_images      = (_op_sampled_image_t *)malloc(sizeof(_op_sampled_image_t) * 1);
+    spv->ptr_count           = 0;
+    spv->ptrs                = (_op_ptr_t *)malloc(sizeof(_op_ptr_t) * 1);
+    spv->name_count          = 0;
+    spv->names               = (_op_name_t *)malloc(sizeof(_op_name_t) * 1);
+    spv->var_count           = 0;
+    spv->vars                = (_op_var_t *)malloc(sizeof(_op_var_t) * 1);
 
     if (spv->names == (_op_name_t *)0x0) {
         free(spv);
@@ -370,6 +478,33 @@ spv_t *spv_parse(const char *data) {
                     _PARSE(data, unsigned int, pos);
                 }
             } break;
+
+            case _OP_TYPE_IMAGE: {
+                unsigned int id          = _PARSE(data, unsigned int, pos);
+                unsigned int samp_id     = _PARSE(data, unsigned int, pos);
+                unsigned int dim         = _PARSE(data, unsigned int, pos);
+                unsigned int depth       = _PARSE(data, unsigned int, pos);
+                unsigned int arrayed     = _PARSE(data, unsigned int, pos);
+                unsigned int ms          = _PARSE(data, unsigned int, pos);
+                unsigned int sampled     = _PARSE(data, unsigned int, pos);
+                unsigned int img_format  = _PARSE(data, unsigned int, pos);
+                unsigned int aq;
+                if (word_count == 10) {
+                    aq = _PARSE(data, unsigned int, pos);
+                } else {
+                    aq = 0;
+                }
+
+                spv_add_image(spv, id, samp_id, dim, depth, arrayed, ms, sampled, img_format, aq);
+            } break;
+
+            case _OP_TYPE_SAMPLED_IMAGE: {
+                unsigned int id   = _PARSE(data, unsigned int, pos);
+                unsigned int type = _PARSE(data, unsigned int, pos);
+
+                spv_add_sampled_image(spv, id, type);
+            } break;
+
 
             case _OP_TYPE_POINTER: {
                 unsigned int id      = _PARSE(data, unsigned int, pos);
@@ -491,13 +626,17 @@ void spv_dump(spv_t *spv) {
 
         _op_vec_t *vec = spv_get_vec(spv, ptr->type_id);
 
-        if (var->storage == _OP_VAR_STORAGE_INPUT || var->storage == _OP_VAR_STORAGE_OUTPUT) {
+        _op_sampled_image_t *img = spv_get_sampled_image(spv, ptr->type_id);
+
+        if (var->storage == _OP_VAR_STORAGE_INPUT || var->storage == _OP_VAR_STORAGE_OUTPUT || var->storage == _OP_VAR_STORAGE_UNIFORMCONSTANT) {
             char buf[256];
 
             if (vec != (_op_vec_t *)0x0) {
                 _op_float_t *float_ = spv_get_float(spv, vec->float_id);
 
                 sprintf(buf, "Variable \"%s\" of type vec%d going %s\n", name->name, float_->bits / 8, var->storage == _OP_VAR_STORAGE_INPUT ? "in" : "out");
+            } else if (var->storage == _OP_VAR_STORAGE_UNIFORMCONSTANT && img != (_op_sampled_image_t *)0x0) {
+                sprintf(buf, "Variable \"%s\" of type sampled_image is uniform\n", name->name);
             } else {
                 sprintf(buf, "Variable \"%s\" of type unknown going %s\n", name->name, var->storage == _OP_VAR_STORAGE_INPUT ? "in" : "out");
             }
