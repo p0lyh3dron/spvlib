@@ -54,330 +54,6 @@ const char *spv_get_last_error(void) {
 }
 
 /*
- *    Adds a float to the spv_t struct.
- *
- *    @param spv_t *spv    The spv_t struct to add the float to.
- *    @param int id        The id of the float.
- *    @param int bits      The number of bits in the float.
- * 
- *    @return int          0 on success, -1 on failure.
- */
-int spv_add_float(spv_t *spv, int id, int bits) {
-    spv->floats = (_op_float_t *)realloc(spv->floats, sizeof(_op_float_t) * (spv->float_count + 1));
-
-    if (spv->floats == (_op_float_t *)0x0) {
-        spv_current_error = "Failed to allocate memory for float.";
-        if (spv_error_callback != (void (*)(const char *))0x0)
-            spv_error_callback(spv_current_error);
-
-        return -1;
-    }
-
-    spv->floats[spv->float_count].id   = id;
-    spv->floats[spv->float_count].bits = bits;
-
-    spv->float_count++;
-
-    return 0;
-}
-
-/*
- *    Adds a vec to the spv_t struct.
- *
- *    @param spv_t *spv    The spv_t struct to add the vec to.
- *    @param int id        The id of the vec.
- *    @param int float_id  The id of the float the vec is made of.
- * 
- *    @return int          0 on success, -1 on failure.
- */
-int spv_add_vec(spv_t *spv, int id, int float_id) {
-    spv->vecs = (_op_vec_t *)realloc(spv->vecs, sizeof(_op_vec_t) * (spv->vec_count + 1));
-
-    if (spv->vecs == (_op_vec_t *)0x0) {
-        spv_current_error = "Failed to allocate memory for vec.";
-        if (spv_error_callback != (void (*)(const char *))0x0)
-            spv_error_callback(spv_current_error);
-
-        return -1;
-    }
-
-    spv->vecs[spv->vec_count].id       = id;
-    spv->vecs[spv->vec_count].float_id = float_id;
-
-    spv->vec_count++;
-
-    return 0;
-}
-
-/*
- *    Adds an image to the spv_t struct.
- *
- *    @param spv_t *spv        The spv_t struct to add the image to.
- *    @param int id            The id of the image.
- *    @param int samp_id       The id of the sampled image.
- *    @param int dim           The dimension of the image.
- *    @param int depth         The depth of the image.
- *    @param int arrayed       Whether or not the image is arrayed.
- *    @param int ms            Whether or not the image is multisampled.
- *    @param int sampled       Whether or not the image is sampled.
- *    @param int img_format    The format of the image.
- *    @param int aq            The access qualifier of the image.
- * 
- *    @return int              0 on success, -1 on failure.
- */
-int spv_add_image(spv_t *spv, int id, int samp_id, int dim, int depth, int arrayed, int ms, int sampled, int img_format, int aq) {
-    spv->images = (_op_image_t *)realloc(spv->images, sizeof(_op_image_t) * (spv->image_count + 1));
-
-    if (spv->images == (_op_image_t *)0x0) {
-        spv_current_error = "Failed to allocate memory for image.";
-        if (spv_error_callback != (void (*)(const char *))0x0)
-            spv_error_callback(spv_current_error);
-
-        return -1;
-    }
-
-    spv->images[spv->image_count].id         = id;
-    spv->images[spv->image_count].samp_id    = samp_id;
-    spv->images[spv->image_count].dim        = dim;
-    spv->images[spv->image_count].depth      = depth;
-    spv->images[spv->image_count].arrayed    = arrayed;
-    spv->images[spv->image_count].ms         = ms;
-    spv->images[spv->image_count].sampled    = sampled;
-    spv->images[spv->image_count].img_format = img_format;
-    spv->images[spv->image_count].aq         = aq;
-
-    spv->image_count++;
-
-    return 0;
-}
-
-/*
- *    Adds a sampled image to the spv_t struct.
- *
- *    @param spv_t *spv    The spv_t struct to add the sampled image to.
- *    @param int id        The id of the sampled image.
- *    @param int type      The type of the sampled image.
- * 
- *    @return int          0 on success, -1 on failure.
- */
-int spv_add_sampled_image(spv_t *spv, int id, int type) {
-    spv->sampled_images = (_op_sampled_image_t *)realloc(spv->sampled_images, sizeof(_op_sampled_image_t) * (spv->sampled_image_count + 1));
-
-    if (spv->sampled_images == (_op_sampled_image_t *)0x0) {
-        spv_current_error = "Failed to allocate memory for sampled image.";
-        if (spv_error_callback != (void (*)(const char *))0x0)
-            spv_error_callback(spv_current_error);
-
-        return -1;
-    }
-
-    spv->sampled_images[spv->sampled_image_count].id   = id;
-    spv->sampled_images[spv->sampled_image_count].type = type;
-
-    spv->sampled_image_count++;
-
-    return 0;
-}
-
-/*
- *    Adds a pointer to the spv_t struct.
- *
- *    @param spv_t *spv    The spv_t struct to add the pointer to.
- *    @param int id        The id of the pointer.
- *    @param int type_id   The id of the type of the pointer.
- * 
- *    @return int          0 on success, -1 on failure.
- */
-int spv_add_ptr(spv_t *spv, int id, int type_id) {
-    spv->ptrs = (_op_ptr_t *)realloc(spv->ptrs, sizeof(_op_ptr_t) * (spv->ptr_count + 1));
-
-    if (spv->ptrs == (_op_ptr_t *)0x0) {
-        spv_current_error = "Failed to allocate memory for pointer.";
-        if (spv_error_callback != (void (*)(const char *))0x0)
-            spv_error_callback(spv_current_error);
-
-        return -1;
-    }
-
-    spv->ptrs[spv->ptr_count].id      = id;
-    spv->ptrs[spv->ptr_count].type_id = type_id;
-
-    spv->ptr_count++;
-
-    return 0;
-}
-
-/*
- *    Adds a variable to the spv_t struct.
- *
- *    @param spv_t *spv    The spv_t struct to add the variable to.
- *    @param char *name    The name of the variable.
- *    @param int id        The id of the variable.
- *
- *    @return int          0 on success, -1 on failure.
- */
-int spv_add_name(spv_t *spv, char *name, int id) {
-    spv->names = (_op_name_t *)realloc(spv->names, sizeof(_op_name_t) * (spv->name_count + 1));
-
-    if (spv->names == (_op_name_t *)0x0) {
-        spv_current_error = "Failed to allocate memory for variable.";
-        if (spv_error_callback != (void (*)(const char *))0x0)
-            spv_error_callback(spv_current_error);
-
-        return -1;
-    }
-
-    spv->names[spv->name_count].name = name;
-    spv->names[spv->name_count].id   = id;
-
-    spv->name_count++;
-
-    return 0;
-}
-
-/*
- *    Adds a variable to the spv_t struct.
- *
- *    @param spv_t *spv    The spv_t struct to add the variable to.
- *    @param int ptr_id    The id of the pointer of the variable.
- *    @param int id        The id of the variable.
- *    @param int storage   The storage of the variable.
- *
- *    @return int          0 on success, -1 on failure.
- */
-int spv_add_var(spv_t *spv, int ptr_id, int id, int storage) {
-    spv->vars = (_op_var_t *)realloc(spv->vars, sizeof(_op_var_t) * (spv->var_count + 1));
-
-    if (spv->vars == (_op_var_t *)0x0) {
-        spv_current_error = "Failed to allocate memory for variable.";
-        if (spv_error_callback != (void (*)(const char *))0x0)
-            spv_error_callback(spv_current_error);
-
-        return -1;
-    }
-
-    spv->vars[spv->var_count].ptr_id  = ptr_id;
-    spv->vars[spv->var_count].id      = id;
-    spv->vars[spv->var_count].storage = storage;
-
-    spv->var_count++;
-
-    return 0;
-}
-
-/*
- *    Returns a float from a given id.
- *
- *    @param spv_t *spv    The spv_t struct to get the float from.
- *    @param int id        The id of the float to get.
- * 
- *    @return _op_float_t  A pointer to the float.
- */
-_op_float_t *spv_get_float(spv_t *spv, int id) {
-    for (unsigned long i = 0; i < spv->float_count; i++)
-        if (spv->floats[i].id == id)
-            return &spv->floats[i];
-
-    return (_op_float_t *)0x0;
-}
-
-/*
- *    Returns a vec from a given id.
- *
- *    @param spv_t *spv    The spv_t struct to get the vec from.
- *    @param int id        The id of the vec to get.
- * 
- *    @return _op_vec_t *  A pointer to the vec.
- */
-_op_vec_t *spv_get_vec(spv_t *spv, int id) {
-    for (unsigned long i = 0; i < spv->vec_count; i++)
-        if (spv->vecs[i].id == id)
-            return &spv->vecs[i];
-
-    return (_op_vec_t *)0x0;
-}
-
-/*
- *    Returns an image from a given id.
- *
- *    @param spv_t *spv    The spv_t struct to get the image from.
- *    @param int id        The id of the image to get.
- * 
- *    @return _op_image_t *  A pointer to the image.
- */
-_op_image_t *spv_get_image(spv_t *spv, int id) {
-    for (unsigned long i = 0; i < spv->image_count; i++)
-        if (spv->images[i].id == id)
-            return &spv->images[i];
-
-    return (_op_image_t *)0x0;
-}
-
-/*
- *    Returns a sampled image from a given id.
- *
- *    @param spv_t *spv    The spv_t struct to get the sampled image from.
- *    @param int id        The id of the sampled image to get.
- * 
- *    @return _op_sampled_image_t *  A pointer to the sampled image.
- */
-_op_sampled_image_t *spv_get_sampled_image(spv_t *spv, int id) {
-    for (unsigned long i = 0; i < spv->sampled_image_count; i++)
-        if (spv->sampled_images[i].id == id)
-            return &spv->sampled_images[i];
-
-    return (_op_sampled_image_t *)0x0;
-}
-
-/*
- *    Returns a pointer from a given id.
- *
- *    @param spv_t *spv    The spv_t struct to get the pointer from.
- *    @param int id        The id of the pointer to get.
- * 
- *    @return _op_ptr_t *  A pointer to the pointer.
- */
-_op_ptr_t *spv_get_ptr(spv_t *spv, int id) {
-    for (unsigned long i = 0; i < spv->ptr_count; i++)
-        if (spv->ptrs[i].id == id)
-            return &spv->ptrs[i];
-
-    return (_op_ptr_t *)0x0;
-}
-
-/*
- *    Returns a variable from a given id.
- *
- *    @param spv_t *spv    The spv_t struct to get the variable from.
- *    @param int id        The id of the variable to get.
- * 
- *    @return _op_name_t *  A pointer to the variable.
- */
-_op_name_t *spv_get_name(spv_t *spv, int id) {
-    for (unsigned long i = 0; i < spv->name_count; i++)
-        if (spv->names[i].id == id)
-            return &spv->names[i];
-
-    return (_op_name_t *)0x0;
-}
-
-/*
- *    Returns a variable from a given id.
- *
- *    @param spv_t *spv    The spv_t struct to get the variable from.
- *    @param int id        The id of the variable to get.
- * 
- *    @return _op_var_t *  A pointer to the variable.
- */
-_op_var_t *spv_get_var(spv_t *spv, int id) {
-    for (unsigned long i = 0; i < spv->var_count; i++)
-        if (spv->vars[i].id == id)
-            return &spv->vars[i];
-
-    return (_op_var_t *)0x0;
-}
-
-/*
  *    Parses spirv binary data into a spv_t struct.
  *
  *    @param const char *data    The spirv binary data to parse.
@@ -387,30 +63,12 @@ _op_var_t *spv_get_var(spv_t *spv, int id) {
 spv_t *spv_parse(const char *data) {
     spv_t *spv = (spv_t *)malloc(sizeof(spv_t));
 
-    spv->float_count         = 0;
-    spv->floats              = (_op_float_t *)malloc(sizeof(_op_float_t) * 1);
-    spv->vec_count           = 0;
-    spv->vecs                = (_op_vec_t *)malloc(sizeof(_op_vec_t) * 1);
-    spv->image_count         = 0;
-    spv->images              = (_op_image_t *)malloc(sizeof(_op_image_t) * 1);
-    spv->sampled_image_count = 0;
-    spv->sampled_images      = (_op_sampled_image_t *)malloc(sizeof(_op_sampled_image_t) * 1);
-    spv->ptr_count           = 0;
-    spv->ptrs                = (_op_ptr_t *)malloc(sizeof(_op_ptr_t) * 1);
-    spv->name_count          = 0;
-    spv->names               = (_op_name_t *)malloc(sizeof(_op_name_t) * 1);
-    spv->var_count           = 0;
-    spv->vars                = (_op_var_t *)malloc(sizeof(_op_var_t) * 1);
-
-    if (spv->names == (_op_name_t *)0x0) {
-        free(spv);
-
-        spv_current_error = "Failed to allocate memory for spv_t struct.";
-        if (spv_error_callback != (void (*)(const char *))0x0)
-            spv_error_callback(spv_current_error);
-
-        return (spv_t *)0x0;
-    }
+    spv->types          = (_type_t *)0x0;
+    spv->types_size     = 0;
+    spv->variables      = (_variable_t *)0x0;
+    spv->variables_size = 0;
+    spv->constants      = (_constant_t *)0x0;
+    spv->constants_size = 0;
 
     unsigned long pos = 0;
 
@@ -435,169 +93,128 @@ spv_t *spv_parse(const char *data) {
         unsigned short word_count = _PARSE(data, unsigned short, pos);
 
         switch (opcode) {
-            case _OP_NAME: {
-                unsigned int id = _PARSE(data, unsigned int, pos);
+            case 19:
+            case 20:
+            case 21:
+            case 22:
+            case 23:
+            case 24:
+            case 25:
+            case 26:
+            case 27:
+            case 28:
+            case 29:
+            case 31:
+            case 32: {
+                _type_t *type = (_type_t *)realloc(spv->types, sizeof(_type_t) * (spv->types_size + 1));
 
-                spv_add_name(spv, (char *)(data + pos), id);
+                if (type == (_type_t *)0x0) {
+                    free(spv);
+
+                    spv_current_error = "Failed to allocate memory for type.";
+                    if (spv_error_callback != (void (*)(const char *))0x0)
+                        spv_error_callback(spv_current_error);
+
+                    return (spv_t *)0x0;
+                }
+
+                spv->types = type;
+
+                memcpy((char *)&spv->types[spv->types_size] + 4, data + pos, (word_count - 1) * sizeof(unsigned int));
+
+                spv->types[spv->types_size].type = opcode;
+
+                spv->types_size++;
+
+                pos += (word_count - 1) * sizeof(unsigned int);
+            } break;
+
+            case 30: {
+                _type_t *type = (_type_t *)realloc(spv->types, sizeof(_type_t) * (spv->types_size + 1));
+
+                if (type == (_type_t *)0x0) {
+                    free(spv);
+
+                    spv_current_error = "Failed to allocate memory for type.";
+                    if (spv_error_callback != (void (*)(const char *))0x0)
+                        spv_error_callback(spv_current_error);
+
+                    return (spv_t *)0x0;
+                }
+
+                spv->types = type;
+
+                spv->types[spv->types_size].id                       = _PARSE(data, unsigned int, pos);
+                spv->types[spv->types_size].type                     = opcode;
+                spv->types[spv->types_size].struct_type.member_count = word_count - 2;
+                spv->types[spv->types_size].struct_type.member_types = (unsigned int *)malloc(sizeof(unsigned int) * (word_count - 2));
+
+                if (spv->types[spv->types_size].struct_type.member_types == (unsigned int *)0x0) {
+                    free(spv);
+
+                    spv_current_error = "Failed to allocate memory for type.";
+                    if (spv_error_callback != (void (*)(const char *))0x0)
+                        spv_error_callback(spv_current_error);
+
+                    return (spv_t *)0x0;
+                }
 
                 for (unsigned short i = 0; i < word_count - 2; i++) {
-                    _PARSE(data, unsigned int, pos);
-                }
-            } break;
-
-            case _OP_MEMBER_NAME: {
-                unsigned int id     = _PARSE(data, unsigned int, pos);
-                unsigned int member = _PARSE(data, unsigned int, pos);
-
-                spv_add_name(spv, (char *)(data + pos), id);
-
-                for (unsigned short i = 0; i < word_count - 3; i++) {
-                    _PARSE(data, unsigned int, pos);
-                }
-            } break;
-
-            case _OP_TYPE_FLOAT: {
-                unsigned int id   = _PARSE(data, unsigned int, pos);
-                unsigned int bits = _PARSE(data, unsigned int, pos);
-
-                spv_add_float(spv, id, bits);
-
-                for (unsigned short i = 0; i < word_count - 3; i++) {
-                    _PARSE(data, unsigned int, pos);
-                }
-            } break;
-
-            case _OP_TYPE_VECTOR: {
-                unsigned int id      = _PARSE(data, unsigned int, pos);
-                unsigned int floatid = _PARSE(data, unsigned int, pos);
-                unsigned int count   = _PARSE(data, unsigned int, pos);
-
-                spv_add_vec(spv, id, floatid);
-
-                for (unsigned short i = 0; i < word_count - 4; i++) {
-                    _PARSE(data, unsigned int, pos);
-                }
-            } break;
-
-            case _OP_TYPE_IMAGE: {
-                unsigned int id          = _PARSE(data, unsigned int, pos);
-                unsigned int samp_id     = _PARSE(data, unsigned int, pos);
-                unsigned int dim         = _PARSE(data, unsigned int, pos);
-                unsigned int depth       = _PARSE(data, unsigned int, pos);
-                unsigned int arrayed     = _PARSE(data, unsigned int, pos);
-                unsigned int ms          = _PARSE(data, unsigned int, pos);
-                unsigned int sampled     = _PARSE(data, unsigned int, pos);
-                unsigned int img_format  = _PARSE(data, unsigned int, pos);
-                unsigned int aq;
-                if (word_count == 10) {
-                    aq = _PARSE(data, unsigned int, pos);
-                } else {
-                    aq = 0;
+                    spv->types[spv->types_size].struct_type.member_types[i] = _PARSE(data, unsigned int, pos);
                 }
 
-                spv_add_image(spv, id, samp_id, dim, depth, arrayed, ms, sampled, img_format, aq);
+                spv->types_size++;
+
             } break;
 
-            case _OP_TYPE_SAMPLED_IMAGE: {
-                unsigned int id   = _PARSE(data, unsigned int, pos);
-                unsigned int type = _PARSE(data, unsigned int, pos);
+            case 43: {
+                _constant_t *constant = (_constant_t *)realloc(spv->constants, sizeof(_constant_t) * (spv->constants_size + 1));
 
-                spv_add_sampled_image(spv, id, type);
-            } break;
+                if (constant == (_constant_t *)0x0) {
+                    free(spv);
 
+                    spv_current_error = "Failed to allocate memory for constant.";
+                    if (spv_error_callback != (void (*)(const char *))0x0)
+                        spv_error_callback(spv_current_error);
 
-            case _OP_TYPE_POINTER: {
-                unsigned int id      = _PARSE(data, unsigned int, pos);
-                unsigned int storage = _PARSE(data, unsigned int, pos);
-                unsigned int type    = _PARSE(data, unsigned int, pos);
-
-                spv_add_ptr(spv, id, type);
-
-                for (unsigned short i = 0; i < word_count - 4; i++) {
-                    _PARSE(data, unsigned int, pos);
+                    return (spv_t *)0x0;
                 }
+
+                spv->constants = constant;
+
+                spv->constants[spv->constants_size].result = _PARSE(data, unsigned int, pos);
+                spv->constants[spv->constants_size].type   = _PARSE(data, unsigned int, pos);
+                spv->constants[spv->constants_size].value  = _PARSE(data, unsigned int, pos);
+
+                pos += (word_count - 4) * sizeof(unsigned int);
+
+                spv->constants_size++;
             } break;
 
             case _OP_VARIABLE: {
-                unsigned int type    = _PARSE(data, unsigned int, pos);
-                unsigned int id      = _PARSE(data, unsigned int, pos);
-                unsigned int storage = _PARSE(data, unsigned int, pos);
+                _variable_t *variable = (_variable_t *)realloc(spv->variables, sizeof(_variable_t) * (spv->variables_size + 1));
 
-                spv_add_var(spv, type, id, storage);
+                if (variable == (_variable_t *)0x0) {
+                    free(spv);
 
-                for (unsigned short i = 0; i < word_count - 4; i++) {
-                    _PARSE(data, unsigned int, pos);
-                }
-            } break;
+                    spv_current_error = "Failed to allocate memory for variable.";
+                    if (spv_error_callback != (void (*)(const char *))0x0)
+                        spv_error_callback(spv_current_error);
 
-            case _OP_DECORATE: {
-                unsigned int id = _PARSE(data, unsigned int, pos);
-                unsigned int dec = _PARSE(data, unsigned int, pos);
-                switch (dec) {
-                    case _DEC_BLOCK: {
-                    } break;
-
-                    case _DEC_BUILTIN: {
-                        unsigned int builtin = _PARSE(data, unsigned int, pos);
-
-                        word_count--;
-                    } break;
-
-                    case _DEC_LOCATION: {
-                        unsigned int location = _PARSE(data, unsigned int, pos);
-
-                        word_count--;
-                    } break;
-
-                    case _DEC_OFFSET: {
-                        unsigned int offset = _PARSE(data, unsigned int, pos);
-
-                        word_count--;
-                    } break;
-
-                    default: {
-                    } break;
+                    return (spv_t *)0x0;
                 }
 
-                for (unsigned short i = 0; i < word_count - 3; i++) {
-                    _PARSE(data, unsigned int, pos);
-                }
-            } break;
+                spv->variables = variable;
 
-            case _OP_MEMBER_DECORATE: {
-                unsigned int id     = _PARSE(data, unsigned int, pos);
-                unsigned int member = _PARSE(data, unsigned int, pos);
-                unsigned int dec    = _PARSE(data, unsigned int, pos);
+                spv->variables[spv->variables_size].result        = _PARSE(data, unsigned int, pos);
+                spv->variables[spv->variables_size].id            = _PARSE(data, unsigned int, pos);
+                spv->variables[spv->variables_size].storage_class = _PARSE(data, unsigned int, pos);
 
-                switch (dec) {
-                    case _DEC_BLOCK: {
-                    } break;
-
-                    case _DEC_BUILTIN: {
-                        unsigned int builtin = _PARSE(data, unsigned int, pos);
-
-                        word_count--;
-                    } break;
-
-                    case _DEC_LOCATION: {
-                        unsigned int location = _PARSE(data, unsigned int, pos);
-
-                        word_count--;
-                    } break;
-
-                    case _DEC_OFFSET: {
-                        unsigned int offset = _PARSE(data, unsigned int, pos);
-
-                        word_count--;
-                    } break;
-
-                    default: {
-                    } break;
+                if (word_count > 4) {
+                    spv->variables[spv->variables_size].initializer   = _PARSE(data, unsigned int, pos);
                 }
 
-                for (unsigned short i = 0; i < word_count - 4; i++) {
-                    _PARSE(data, unsigned int, pos);
-                }
+                spv->variables_size++;
             } break;
 
             default: {
@@ -612,36 +229,99 @@ spv_t *spv_parse(const char *data) {
 }
 
 /*
+ *    Prints the value of a constant.
+ *
+ *    @param spv_t *spv         The spv_t struct to use.
+ *    @param unsigned int id    The id of the constant.
+ */
+void spv_print_constant(spv_t *spv, unsigned int id) {
+    for (unsigned long j = 0; j < spv->constants_size; ++j) {
+        if (spv->constants[j].type == id) {
+            printf("%u", spv->constants[j].value);
+        }
+    }
+}
+
+/*
+ *    Prints the type of a variable.
+ *
+ *    @param spv_t *spv         The spv_t struct to use.
+ *    @param unsigned int id    The id of the variable.
+ */
+void spv_print_type(spv_t *spv, unsigned int id) {
+    for (unsigned long j = 0; j < spv->types_size; ++j) {
+        if (spv->types[j].id == id) {
+            switch (spv->types[j].type) {
+                case _TYPE_FLOAT: {
+                    printf("float");
+                } break;
+
+                case _TYPE_VECTOR: {
+                    printf("vec%u", spv->types[j].vector_type.component_count);
+                } break;
+
+                case _TYPE_IMAGE: {
+                    printf("image");
+                } break;
+
+                case _TYPE_SAMPLED_IMAGE: {
+                    printf("sampler");
+                } break;
+
+                case _TYPE_POINTER: {
+                    spv_print_type(spv, spv->types[j].pointer_type.type);
+                    printf("*");
+                } break;
+
+                case _TYPE_ARRAY: {
+                    spv_print_type(spv, spv->types[j].array_type.element_type);
+                    printf("[");
+                    spv_print_constant(spv, spv->types[j].array_type.length);
+                    printf("]");
+                } break;
+
+                case _TYPE_STRUCT: {
+                    printf("struct { ");
+
+                    for (unsigned short i = 0; i < spv->types[j].struct_type.member_count; ++i) {
+                        spv_print_type(spv, spv->types[j].struct_type.member_types[i]);
+                        printf(" ");
+                    }
+
+                    printf("}");
+                } break;
+
+                default: {
+                    printf("unknown");
+                } break;
+            }
+        }
+    }
+}
+
+/*
  *    Dumps the information about the inputs, outputs, and uniforms in a spv_t struct.
  *
  *    @param spv_t *spv    The spv_t struct to dump.
  */
 void spv_dump(spv_t *spv) {
-    for (unsigned long i = 1; i < spv->var_count; ++i) {
-        _op_var_t *var = &spv->vars[i];
-
-        _op_ptr_t *ptr = spv_get_ptr(spv, var->ptr_id);
-
-        _op_name_t *name = spv_get_name(spv, var->id);
-
-        _op_vec_t *vec = spv_get_vec(spv, ptr->type_id);
-
-        _op_sampled_image_t *img = spv_get_sampled_image(spv, ptr->type_id);
-
-        if (var->storage == _OP_VAR_STORAGE_INPUT || var->storage == _OP_VAR_STORAGE_OUTPUT || var->storage == _OP_VAR_STORAGE_UNIFORMCONSTANT) {
-            char buf[256];
-
-            if (vec != (_op_vec_t *)0x0) {
-                _op_float_t *float_ = spv_get_float(spv, vec->float_id);
-
-                sprintf(buf, "Variable \"%s\" of type vec%d going %s\n", name->name, float_->bits / 8, var->storage == _OP_VAR_STORAGE_INPUT ? "in" : "out");
-            } else if (var->storage == _OP_VAR_STORAGE_UNIFORMCONSTANT && img != (_op_sampled_image_t *)0x0) {
-                sprintf(buf, "Variable \"%s\" of type sampled_image is uniform\n", name->name);
-            } else {
-                sprintf(buf, "Variable \"%s\" of type unknown going %s\n", name->name, var->storage == _OP_VAR_STORAGE_INPUT ? "in" : "out");
-            }
-
-            printf("%s", buf);
+    for (unsigned long i = 0; i < spv->variables_size; ++i) {
+        if (spv->variables[i].storage_class == 0x0) {
+            printf("uniformconstant ");
+            spv_print_type(spv, spv->variables[i].result);
+            printf(";\n");
+        } else if (spv->variables[i].storage_class == 0x1) {
+            printf("in ");
+            spv_print_type(spv, spv->variables[i].result);
+            printf(";\n");
+        } else if (spv->variables[i].storage_class == 0x2) {
+            printf("uniform ");
+            spv_print_type(spv, spv->variables[i].result);
+            printf(";\n");
+        } else if (spv->variables[i].storage_class == 0x3) {
+            printf("out ");
+            spv_print_type(spv, spv->variables[i].result);
+            printf(";\n");
         }
     }
 }
@@ -652,9 +332,6 @@ void spv_dump(spv_t *spv) {
  *    @param spv_t *spv    The spv_t struct to free.
  */
 void spv_free(spv_t *spv) {
-    free(spv->names);
-    free(spv->ptrs);
-    free(spv->vecs);
-    free(spv->floats);
+    free(spv->types);
     free(spv);
 }

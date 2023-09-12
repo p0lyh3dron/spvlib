@@ -10,78 +10,127 @@
 #ifndef _SPVLIB_H
 #define _SPVLIB_H
 
-typedef struct  {
-    unsigned int id;
-    unsigned int bits;
-} _op_float_t;
+typedef enum {
+    _TYPE_VOID = 19,
+    _TYPE_BOOL,
+    _TYPE_INT,
+    _TYPE_FLOAT,
+    _TYPE_VECTOR,
+    _TYPE_MATRIX,
+    _TYPE_IMAGE,
+    _TYPE_SAMPLER,
+    _TYPE_SAMPLED_IMAGE,
+    _TYPE_ARRAY,
+    _TYPE_RUNTIME_ARRAY,
+    _TYPE_STRUCT,
+    _TYPE_OPAQUE,
+    _TYPE_POINTER,
+} _type_e;
 
 typedef struct {
-    unsigned int id;
-    unsigned int float_id;
-} _op_vec_t;
+
+} _type_void_t;
 
 typedef struct {
-    unsigned int id;
-    unsigned int samp_id;
+    
+} _type_bool_t;
+
+typedef struct {
+    unsigned int width;
+    unsigned int signedness;
+} _type_int_t;
+
+typedef struct {
+    unsigned int width;
+} _type_float_t;
+
+typedef struct {
+    unsigned int component_type;
+    unsigned int component_count;
+} _type_vector_t;
+
+typedef struct {
+    unsigned int column_type;
+    unsigned int column_count;
+} _type_matrix_t;
+
+typedef struct {
+    unsigned int sampled_type;
     unsigned int dim;
     unsigned int depth;
     unsigned int arrayed;
     unsigned int ms;
     unsigned int sampled;
-    unsigned int img_format;
-    unsigned int aq;
-} _op_image_t;
+    unsigned int image_format;
+} _type_image_t;
 
 typedef struct {
-    unsigned int id;
+    
+} _type_sampler_t;
+
+typedef struct {
+    unsigned int image_type;
+} _type_sampled_image_t;
+
+typedef struct {
+    unsigned int element_type;
+    unsigned int length;
+} _type_array_t;
+
+typedef struct {
+    unsigned int element_type;
+} _type_runtime_array_t;
+
+typedef struct {
+    unsigned short  member_count;
+    unsigned int   *member_types;
+} _type_struct_t;
+
+typedef struct {
+    unsigned int storage_class;
     unsigned int type;
-} _op_sampled_image_t;
+} _type_pointer_t;
 
 typedef struct {
+    _type_e       type;
+    unsigned int  id;
+    union {
+        _type_void_t          void_type;
+        _type_bool_t          bool_type;
+        _type_int_t           int_type;
+        _type_float_t         float_type;
+        _type_vector_t        vector_type;
+        _type_matrix_t        matrix_type;
+        _type_image_t         image_type;
+        _type_sampler_t       sampler_type;
+        _type_sampled_image_t sampled_image_type;
+        _type_array_t         array_type;
+        _type_runtime_array_t runtime_array_type;
+        _type_struct_t        struct_type;
+        _type_pointer_t       pointer_type;
+    };
+} _type_t;
+
+typedef struct {
+    unsigned int result;
+    unsigned int type;
+    unsigned int value;
+} _constant_t;
+
+typedef struct {
+    unsigned int result;
     unsigned int id;
-    unsigned int type_id;
-} _op_ptr_t;
-
-typedef enum {
-    _OP_VAR_TYPE_FLOAT,
-    _OP_VAR_TYPE_VEC2,
-    _OP_VAR_TYPE_VEC3,
-    _OP_VAR_TYPE_VEC4,
-} _op_var_type_e;
-
-typedef enum {
-    _OP_VAR_STORAGE_UNIFORMCONSTANT = 0,
-    _OP_VAR_STORAGE_INPUT           = 1,
-    _OP_VAR_STORAGE_UNIFORM         = 2,
-    _OP_VAR_STORAGE_OUTPUT          = 3,
-} _op_var_storage_e;
+    unsigned int storage_class;
+    unsigned int initializer;
+} _variable_t;
 
 typedef struct {
-    char          *name;
-    unsigned int   id;
-} _op_name_t;
-
-typedef struct {
-    unsigned int ptr_id;
-    unsigned int id;
-    unsigned int storage;
-} _op_var_t;
-
-typedef struct {
-    _op_float_t         *floats;
-    unsigned long        float_count;
-    _op_vec_t           *vecs;
-    unsigned long        vec_count;
-    _op_image_t         *images;
-    unsigned long        image_count;
-    _op_sampled_image_t *sampled_images;
-    unsigned long        sampled_image_count;
-    _op_ptr_t           *ptrs;
-    unsigned long        ptr_count;
-    _op_name_t          *names;
-    unsigned long        name_count;
-    _op_var_t           *vars;
-    unsigned long        var_count;
+    _type_t       *types;
+    unsigned long  types_size;
+    _variable_t   *variables;
+    unsigned long  variables_size;
+    _constant_t   *constants;
+    unsigned long  constants_size;
 } spv_t;
 
 /*
