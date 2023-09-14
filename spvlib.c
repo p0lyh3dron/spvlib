@@ -63,12 +63,16 @@ const char *spv_get_last_error(void) {
 spv_t *spv_parse(const char *data) {
     spv_t *spv = (spv_t *)malloc(sizeof(spv_t));
 
-    spv->types          = (_type_t *)0x0;
-    spv->types_size     = 0;
-    spv->variables      = (_variable_t *)0x0;
-    spv->variables_size = 0;
-    spv->constants      = (_constant_t *)0x0;
-    spv->constants_size = 0;
+    spv->types            = (_type_t *)0x0;
+    spv->types_size       = 0;
+    spv->variables        = (_variable_t *)0x0;
+    spv->variables_size   = 0;
+    spv->constants        = (_constant_t *)0x0;
+    spv->constants_size   = 0;
+    spv->decorations      = (_decoration_t *)0x0;
+    spv->decorations_size = 0;
+    spv->names            = (_name_t *)0x0;
+    spv->names_size       = 0;
 
     unsigned long pos = 0;
 
@@ -191,6 +195,31 @@ spv_t *spv_parse(const char *data) {
                 spv->constants_size++;
             } break;
 
+            case 71: {
+                _decoration_t *decoration = (_decoration_t *)realloc(spv->decorations, sizeof(_decoration_t) * (spv->decorations_size + 1));
+
+                if (decoration == (_decoration_t *)0x0) {
+                    free(spv);
+
+                    spv_current_error = "Failed to allocate memory for decoration.";
+                    if (spv_error_callback != (void (*)(const char *))0x0)
+                        spv_error_callback(spv_current_error);
+
+                    return (spv_t *)0x0;
+                }
+
+                spv->decorations = decoration;
+
+                spv->decorations[spv->decorations_size].result     = _PARSE(data, unsigned int, pos);
+                spv->decorations[spv->decorations_size].decoration = _PARSE(data, unsigned int, pos);
+
+                if (word_count > 3) {
+                    spv->decorations[spv->decorations_size].value      = _PARSE(data, unsigned int, pos);
+                }
+
+                spv->decorations_size++;
+            } break;
+
             case _OP_VARIABLE: {
                 _variable_t *variable = (_variable_t *)realloc(spv->variables, sizeof(_variable_t) * (spv->variables_size + 1));
 
@@ -300,6 +329,164 @@ void spv_print_type(spv_t *spv, unsigned int id) {
 }
 
 /*
+ *    Gets the number of inputs in a spv_t struct.
+ *
+ *    @param spv_t *spv    The spv_t struct to use.
+ * 
+ *    @return unsigned int    The number of inputs.
+ */
+unsigned int spv_get_input_count(spv_t *spv) {
+    unsigned int count = 0;
+
+    for (unsigned long i = 0; i < spv->variables_size; ++i) {
+        if (spv->variables[i].storage_class == 0x1) {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+/*
+ *    Returns the api type of an input.
+ *
+ *    @param spv_t *spv         The spv_t struct to use.
+ *    @param unsigned int id    The id of the input.
+ * 
+ *    @return _api_type_e    The api type of the input.
+ */
+_api_type_e spv_get_input_type(spv_t *spv, unsigned int id) {
+    unsigned long pos = 0;
+
+    for (unsigned long i = 0; i < spv->variables_size; ++i) {
+        if (spv->variables[i].storage_class == 0x1) {
+            if (pos != id) {
+                pos++;
+                continue;
+            }
+
+            _type_t type;
+
+            for (unsigned long j = 0; j < spv->types_size; ++j) {
+                if (spv->types[j].id == spv->variables[i].result) {
+                    type = spv->types[j];
+                    break;
+                }
+            }
+
+            if (type.type == _TYPE_POINTER) {
+                for (unsigned long j = 0; j < spv->types_size; ++j) {
+                    if (spv->types[j].id == type.pointer_type.type) {
+                        type = spv->types[j];
+                        break;
+                    }
+                }
+            }
+
+            switch (type.type) {
+                case _TYPE_FLOAT: {
+                    return _API_TYPE_FLOAT;
+                } break;
+
+                case _TYPE_VECTOR: {
+                    switch (type.vector_type.component_count) {
+                        case 2: {
+                            return _API_TYPE_VEC2;
+                        } break;
+
+                        case 3: {
+                            return _API_TYPE_VEC3;
+                        } break;
+
+                        case 4: {
+                            return _API_TYPE_VEC4;
+                        } break;
+                    }
+                } break;
+            }
+        }
+    }
+
+    return _API_TYPE_FLOAT;
+}
+
+/*
+ *    Gets the number of uniform declarations in a spv_t struct.
+ *
+ *    @param spv_t *spv    The spv_t struct to use.
+ *
+ *    @return unsigned int    The number of uniform declarations.
+ */
+unsigned int spv_get_uniform_count(spv_t *spv) {
+    unsigned int count = 0;
+
+    for (unsigned long i = 0; i < spv->variables_size; ++i) {
+        if (spv->variables[i].storage_class == 0x0) {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+/*
+ *    Returns the api type of a uniform declaration.
+ *
+ *    @param spv_t *spv         The spv_t struct to use.
+ *    @param unsigned int id    The id of the uniform declaration.
+ *
+ *    @return _api_type_e    The api type of the uniform declaration.
+ */
+_api_type_e spv_get_uniform_type(spv_t *spv, unsigned int id) {
+    unsigned long pos = 0;
+
+    for (unsigned long i = 0; i < spv->variables_size; ++i) {
+        if (spv->variables[i].storage_class == 0x0 || spv->variables[i].storage_class == 0x2) {
+            if (pos != id) {
+                pos++;
+                continue;
+            }
+
+            _type_t type;
+
+            for (unsigned long j = 0; j < spv->types_size; ++j) {
+                if (spv->types[j].id == spv->variables[i].result) {
+                    type = spv->types[j];
+                    break;
+                }
+            }
+
+            if (type.type == _TYPE_POINTER) {
+                for (unsigned long j = 0; j < spv->types_size; ++j) {
+                    if (spv->types[j].id == type.pointer_type.type) {
+                        type = spv->types[j];
+                        break;
+                    }
+                }
+            }
+
+            for (unsigned int j = 0; j < spv->decorations_size; ++j) {
+                if (spv->decorations[j].result == spv->variables[i].result) {
+                    if (spv->decorations[j].decoration == 3) {
+                        return _API_TYPE_STORAGE_BUFFER;
+                    }
+
+                    if (spv->decorations[j].decoration == 2) {
+                        return _API_TYPE_UNIFORM_BUFFER;
+                    }
+                }
+            }
+
+            if (type.type == _TYPE_SAMPLED_IMAGE) {
+                return _API_TYPE_SAMPLER;
+            }
+        }
+    }
+
+    return _API_TYPE_FLOAT;
+}
+
+/*
  *    Dumps the information about the inputs, outputs, and uniforms in a spv_t struct.
  *
  *    @param spv_t *spv    The spv_t struct to dump.
@@ -320,6 +507,10 @@ void spv_dump(spv_t *spv) {
             printf(";\n");
         } else if (spv->variables[i].storage_class == 0x3) {
             printf("out ");
+            spv_print_type(spv, spv->variables[i].result);
+            printf(";\n");
+        } else if (spv->variables[i].storage_class == 0x9) {
+            printf("pushconstant ");
             spv_print_type(spv, spv->variables[i].result);
             printf(";\n");
         }

@@ -27,6 +27,16 @@ typedef enum {
     _TYPE_POINTER,
 } _type_e;
 
+typedef enum {
+    _API_TYPE_FLOAT = 0,
+    _API_TYPE_VEC2,
+    _API_TYPE_VEC3,
+    _API_TYPE_VEC4,
+    _API_TYPE_STORAGE_BUFFER,
+    _API_TYPE_UNIFORM_BUFFER,
+    _API_TYPE_SAMPLER,
+} _api_type_e;
+
 typedef struct {
 
 } _type_void_t;
@@ -125,12 +135,27 @@ typedef struct {
 } _variable_t;
 
 typedef struct {
+    unsigned int result;
+    unsigned int decoration;
+    unsigned int value;
+} _decoration_t;
+
+typedef struct {
+    unsigned int  target;
+    char         *name;
+} _name_t;
+
+typedef struct {
     _type_t       *types;
     unsigned long  types_size;
     _variable_t   *variables;
     unsigned long  variables_size;
     _constant_t   *constants;
     unsigned long  constants_size;
+    _decoration_t *decorations;
+    unsigned long  decorations_size;
+    _name_t       *names;
+    unsigned long  names_size;
 } spv_t;
 
 /*
@@ -155,6 +180,44 @@ const char *spv_get_last_error(void);
  *    @return spv_t *            A pointer to the parsed spirv data.
  */
 spv_t *spv_parse(const char *data);
+
+/*
+ *    Gets the number of inputs in a spv_t struct.
+ *
+ *    @param spv_t *spv    The spv_t struct to use.
+ * 
+ *    @return unsigned int    The number of inputs.
+ */
+unsigned int spv_get_input_count(spv_t *spv);
+
+/*
+ *    Returns the api type of an input.
+ *
+ *    @param spv_t *spv         The spv_t struct to use.
+ *    @param unsigned int id    The id of the input.
+ * 
+ *    @return _api_type_e    The api type of the input.
+ */
+_api_type_e spv_get_input_type(spv_t *spv, unsigned int id);
+
+/*
+ *    Gets the number of uniform declarations in a spv_t struct.
+ *
+ *    @param spv_t *spv    The spv_t struct to use.
+ *
+ *    @return unsigned int    The number of uniform declarations.
+ */
+unsigned int spv_get_uniform_count(spv_t *spv);
+
+/*
+ *    Returns the api type of a uniform declaration.
+ *
+ *    @param spv_t *spv         The spv_t struct to use.
+ *    @param unsigned int id    The id of the uniform declaration.
+ *
+ *    @return _api_type_e    The api type of the uniform declaration.
+ */
+_api_type_e spv_get_uniform_type(spv_t *spv, unsigned int id);
 
 /*
  *    Dumps the information about the inputs, outputs, and uniforms in a spv_t struct.
