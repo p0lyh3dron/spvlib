@@ -28,7 +28,8 @@ typedef enum {
 } _type_e;
 
 typedef enum {
-    _API_TYPE_FLOAT = 0,
+    _API_TYPE_NONE = 0,
+    _API_TYPE_FLOAT,
     _API_TYPE_VEC2,
     _API_TYPE_VEC3,
     _API_TYPE_VEC4,

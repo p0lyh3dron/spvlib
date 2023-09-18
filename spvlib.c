@@ -483,7 +483,7 @@ _api_type_e spv_get_uniform_type(spv_t *spv, unsigned int id) {
         }
     }
 
-    return _API_TYPE_FLOAT;
+    return _API_TYPE_NONE;
 }
 
 /*
