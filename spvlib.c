@@ -57,10 +57,11 @@ const char *spv_get_last_error(void) {
  *    Parses spirv binary data into a spv_t struct.
  *
  *    @param const char *data    The spirv binary data to parse.
+ *    @param unsigned long size  The size of the spirv binary data.
  * 
  *    @return spv_t *            A pointer to the parsed spirv data.
  */
-spv_t *spv_parse(const char *data) {
+spv_t *spv_parse(const char *data, unsigned long size) {
     spv_t *spv = (spv_t *)malloc(sizeof(spv_t));
 
     spv->types            = (_type_t *)0x0;
@@ -252,7 +253,7 @@ spv_t *spv_parse(const char *data) {
                 }
             } break;
         }
-    } while(data[pos] != (char)0x0);
+    } while(pos < size);
 
     return spv;
 }

@@ -25,7 +25,7 @@ int main() {
 
     fclose(file);
 
-    spv_t *spv = spv_parse(data);
+    spv_t *spv = spv_parse(data, size);
 
     spv_dump(spv);
 
@@ -45,7 +45,7 @@ int main() {
 
     fclose(file);
 
-    spv = spv_parse(data);
+    spv = spv_parse(data, size);
 
     printf("\n\n\n");
     
